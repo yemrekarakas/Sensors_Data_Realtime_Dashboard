@@ -1,0 +1,101 @@
+GET _cat/indices?v
+
+GET /sensor_data/_mapping
+
+DELETE /sensor_data
+
+PUT /sensor_data
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "event_ts_min": {"type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "ts_min_bignt": {"type": "integer"},
+      "room": {"type": "text"},
+      "co2": {"type": "double"},
+      "humidity": {"type": "double"},
+      "light": {"type": "double"},
+      "pir": {"type": "double"},
+      "temperature": {"type": "double"}
+    }
+  }
+}
+
+
+GET /sensor_data/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+
+POST _sql?format=txt
+{
+  "query": """
+  SELECT 
+    DATETIME_FORMAT(event_ts_min, 'yyyy-MM-dd HH:mm:ss') AS event_ts_min,
+    ts_min_bignt,
+    room,
+    co2,
+    humidity,
+    light,
+    pir,
+    temperature
+  FROM "sensor_data" limit 20
+  """
+}
+
+POST /sensor_data/_search
+{
+  "query": {
+    "match": {
+      "ts_min_bignt": "1377581050"
+    }
+  },
+  "size": 5
+}
+
+
+POST /sensor_data/_search
+{
+  "query": {
+    "range": {
+      "event_ts_min": {
+        "gte": "2013-08-01 00:00:00",
+        "lte": "2013-08-31 00:00:00"
+      }
+    }
+  },
+  "size": 5
+}
+
+
+PUT /sensor_data
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "event_ts_min": {
+        "type": "date",
+        "format": "MM/dd/yyyy HH:ss||MM/d/yyyy HH:ss||MM/dd/yyyy H:ss||M/dd/yyyy HH:ss||MM/d/yyyy H:ss||M/d/yyyy HH:ss",
+        "ignore_malformed": true
+      },
+      "ts_min_bignt": {"type": "integer"},
+      "room": {"type": "text"},
+      "co2": {"type": "number"},
+      "humidity": {"type": "number"},
+      "light": {"type": "number"},
+      "pir": {"type": "number"},
+      "temperature": {"type": "number"}
+    }
+  }
+}
